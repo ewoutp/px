@@ -32,3 +32,20 @@ jobs:
           px add "$HOME/dummy-repo"
           [ -L "dummy-repo" ] || exit 1
           grep "Linked: dummy-repo" AGENTS.md
+
+      - name: Test Current
+        run: |
+          export PX_ROOT="$HOME/my-projects"
+          
+          # Test in project root
+          cd "$PX_ROOT/test-project"
+          [ "$(px current)" = "test-project" ] || exit 1
+          
+          # Test in child directory
+          mkdir -p "$PX_ROOT/test-project/subdir/deep"
+          cd "$PX_ROOT/test-project/subdir/deep"
+          [ "$(px current)" = "test-project" ] || exit 1
+          
+          # Test outside
+          cd "$HOME"
+          px current && exit 1 || true

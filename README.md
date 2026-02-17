@@ -110,7 +110,25 @@ A typical `px` project looks like this:
 | `px add <path>`    | Links an existing Git repo into the project.     |
 | `px list`          | Shows all projects and their linked repo counts. |
 | `px remove <link>` | Safely removes a link and cleans `AGENTS.md`.    |
+| `px go <name>`     | Quickly switch to a project directory.           |
+| `px current`       | Display the name of the current project.         |
 | `px install`       | Symlinks the script to your local bin folder.    |
+
+---
+
+## 🎨 Shell Integration
+
+### Starship Prompt
+You can display the current `px` project in your [Starship](https://starship.rs/) prompt by adding this to `~/.config/starship.toml`:
+
+```toml
+[custom.px_project]
+command = "px current"
+when = "px current"
+format = "[$symbol($output )]($style)"
+symbol = "🤖 "
+style = "bold blue"
+```
 
 ---
 

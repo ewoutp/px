@@ -14,6 +14,7 @@ px_usage() {
     echo "  list           List all projects in $PX_ROOT"
     echo "  remove <name>  Remove a symlink and its reference in AGENTS.md"
     echo "  go <name>      Quickly switch to a project directory (optionally using gum)"
+    echo "  current        Display the name of the current project if within one"
     echo "  install        Install this script to $BIN_DIR"
 }
 
@@ -132,6 +133,28 @@ px_go() {
     fi
 }
 
+px_current() {
+    local current_dir="${PWD}"
+    local px_root_physical
+    px_root_physical=$(cd "$PX_ROOT" 2>/dev/null && pwd -P)
+    [ -z "$px_root_physical" ] && return 1
+
+    local dir="$current_dir"
+    while [[ "$dir" != "/" && "$dir" != "." ]]; do
+        local parent
+        parent=$(dirname "$dir")
+        local parent_physical
+        parent_physical=$(cd "$parent" 2>/dev/null && pwd -P)
+
+        if [[ "$parent_physical" == "$px_root_physical" ]]; then
+            basename "$dir"
+            return 0
+        fi
+        dir="$parent"
+    done
+    return 1
+}
+
 px_install() {
     mkdir -p "$BIN_DIR"
     local script_src
@@ -171,6 +194,7 @@ case "$1" in
     list)    shift; px_list ;;
     remove)  shift; px_remove "$@" ;;
     go)      shift; px_go "$@" ;;
+    current) px_current ;;
     install) px_install ;;
     *)       px_usage ;;
 esac
