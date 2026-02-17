@@ -1,11 +1,6 @@
-Here is the complete, copy-paste ready `README.md` for your GitHub repository. It incorporates the "Sudo-Free" installation, the AI-specific advantages, and a professional layout.
-
----
-
-````markdown
 # px 🤖
 
-> **Context-aware project management for multi-repo AI development.**
+**Context-aware project management for multi-repo AI development.**
 
 `px` (Project X) is a lightweight CLI tool designed to bridge the gap between fragmented codebases and AI context windows. It allows you to create a unified "Project Hub" where multiple repositories are linked side-by-side, governed by a single `AGENTS.md` file.
 
@@ -42,10 +37,14 @@ cd px
 chmod +x px
 ./px install
 ```
-````
 
-> **Note:** Ensure `$HOME/.local/bin` is in your `PATH`. If it's not, add the following line to your `.zshrc` or `.bashrc`:
-> `export PATH="$HOME/.local/bin:$PATH"`
+> **Note:** Ensure `$HOME/.local/bin` is in your `PATH`.
+
+If it's not, add the following line to your `.zshrc` or `.bashrc`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
 
 ---
 
@@ -57,7 +56,6 @@ Create a new feature hub. This will create the folder in your `$PX_ROOT` (defaul
 
 ```bash
 px init new-payment-flow
-
 ```
 
 ### 2. Link Repositories
@@ -72,12 +70,11 @@ px add ~/code/web-frontend
 
 ### 3. Start Developing
 
-Launch your AI agent of choice (e.g., Aider, Claude Engineer, or Cursor) in the project root.
+Launch your AI agent of choice (e.g., Crush, Aider, Claude Engineer, or Cursor) in the project root.
 
 ```bash
-# Example with Aider
-aider AGENTS.md
-
+# Example with Crush
+crush
 ```
 
 ---
@@ -101,7 +98,6 @@ A typical `px` project looks like this:
 ├── AGENTS.md            # Your primary AI mission & instructions
 ├── api-service/         # Symlink to ~/code/api-service
 └── web-frontend/        # Symlink to ~/code/web-frontend
-
 ```
 
 ---
@@ -124,20 +120,10 @@ You can customize the project location by setting the `PX_ROOT` variable in your
 
 ```bash
 export PX_ROOT="$HOME/work/ai-features"
-
 ```
 
 ---
 
 ## 📜 License
 
-This project is licensed under the [MIT License]().
-
-```
-
----
-
-### Final Step
-Once you've pushed this to GitHub, would you like me to help you create a **Release** or a **Homebrew Formula** so people can install it even more easily in the future?
-
-```
+This project is licensed under the [MIT License](LICENSE).
