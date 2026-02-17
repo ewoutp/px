@@ -32,7 +32,7 @@
 Clone the repository and run the install command. No root/sudo required.
 
 ```bash
-git clone [https://github.com/your-username/px.git](https://github.com/your-username/px.git)
+git clone [https://github.com/ewoutp/px.git](https://github.com/ewoutp/px.git)
 cd px
 chmod +x px
 ./px install
