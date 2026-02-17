@@ -1,0 +1,11 @@
+# Ignore the default project root if you happen to create it inside the repo
+my-projects/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor swap files
+*.swp
+.vscode/
+.idea/
