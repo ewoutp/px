@@ -6,13 +6,14 @@ export EDITOR="${EDITOR:-nano}"
 BIN_DIR="$HOME/.local/bin"
 
 px_usage() {
-    echo "Usage: px {init|add|list|remove|install}"
+    echo "Usage: px {init|add|list|remove|go|install}"
     echo ""
     echo "Commands:"
     echo "  init <name>    Create a new project folder and open AGENTS.md"
     echo "  add <path>     Verify and symlink a git repo into the current project"
     echo "  list           List all projects in $PX_ROOT"
     echo "  remove <name>  Remove a symlink and its reference in AGENTS.md"
+    echo "  go <name>      Quickly switch to a project directory (optionally using gum)"
     echo "  install        Install this script to $BIN_DIR"
 }
 
@@ -95,6 +96,42 @@ px_remove() {
     fi
 }
 
+px_go() {
+    local proj_name=$1
+
+    if [ -z "$proj_name" ]; then
+        if ! command -v gum >/dev/null 2>&1; then
+            echo "❌ Error: gum is not installed. Please provide a project name or install gum."
+            exit 1
+        fi
+
+        if [ ! -d "$PX_ROOT" ]; then
+            echo "❌ Error: PX_ROOT ($PX_ROOT) does not exist."
+            exit 1
+        fi
+
+        # Find only directories and get their names
+        proj_name=$(find "$PX_ROOT" -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | gum filter --placeholder "Select project...")
+        [ -z "$proj_name" ] && return
+    fi
+
+    local target_dir="$PX_ROOT/$proj_name"
+    if [ -d "$target_dir" ]; then
+        if [ "$PX_INTERNAL_RETURN_DIR" = "1" ]; then
+            echo "$target_dir"
+            return
+        else
+            echo "🚀 Moving to $target_dir"
+            # Starting a new shell ensures the user is "in" the directory.
+            cd "$target_dir" || exit
+            exec "$SHELL"
+        fi
+    else
+        echo "❌ Error: Project '$proj_name' not found in $PX_ROOT"
+        exit 1
+    fi
+}
+
 px_install() {
     mkdir -p "$BIN_DIR"
     local script_src
@@ -110,9 +147,22 @@ px_install() {
         echo "⚠️  Warning: $BIN_DIR is not in your PATH."
         echo "Add this to your .zshrc or .bashrc:"
         echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
-    else
-        echo "🚀 'px' is ready to use!"
     fi
+
+    echo ""
+    echo "💡 To enable 'px go', add this to your .zshrc or .bashrc:"
+    echo 'px() {
+    if [[ "$1" == "go" ]]; then
+        local dir
+        dir=$(PX_INTERNAL_RETURN_DIR=1 command px go "$2")
+        if [ -d "$dir" ]; then
+            cd "$dir" || return
+        fi
+    else
+        command px "$@"
+    fi
+}'
+    echo "🚀 'px' is ready to use!"
 }
 
 case "$1" in
@@ -120,6 +170,7 @@ case "$1" in
     add)     shift; px_add "$@" ;;
     list)    shift; px_list ;;
     remove)  shift; px_remove "$@" ;;
+    go)      shift; px_go "$@" ;;
     install) px_install ;;
     *)       px_usage ;;
 esac
