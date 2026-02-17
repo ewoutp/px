@@ -1,0 +1,34 @@
+name: Test px CLI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install px
+        run: |
+          ./px install
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Test Init
+        # Using 'cat' to mock the editor interaction
+        run: |
+          EDITOR=cat px init test-project
+          [ -d "$HOME/my-projects/test-project" ] || exit 1
+          [ -f "$HOME/my-projects/test-project/AGENTS.md" ] || exit 1
+
+      - name: Test Add
+        run: |
+          cd "$HOME/my-projects/test-project"
+          # Create a dummy git repo to link
+          mkdir -p "$HOME/dummy-repo/.git"
+          px add "$HOME/dummy-repo"
+          [ -L "dummy-repo" ] || exit 1
+          grep "Linked: dummy-repo" AGENTS.md

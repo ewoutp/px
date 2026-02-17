@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+
+# Configuration
+export PX_ROOT="${PX_ROOT:-$HOME/my-projects}"
+export EDITOR="${EDITOR:-nano}"
+BIN_DIR="$HOME/.local/bin"
+
+px_usage() {
+    echo "Usage: px {init|add|list|remove|install}"
+    echo ""
+    echo "Commands:"
+    echo "  init <name>    Create a new project folder and open AGENTS.md"
+    echo "  add <path>     Verify and symlink a git repo into the current project"
+    echo "  list           List all projects in $PX_ROOT"
+    echo "  remove <name>  Remove a symlink and its reference in AGENTS.md"
+    echo "  install        Install this script to $BIN_DIR"
+}
+
+px_init() {
+    local proj_name=$1
+    if [ -z "$proj_name" ]; then echo "Usage: px init [name]"; exit 1; fi
+
+    local target_dir="$PX_ROOT/$proj_name"
+    mkdir -p "$target_dir"
+    cd "$target_dir" || exit
+
+    cat <<EOF > AGENTS.md
+# Project: $proj_name
+## Objective
+- [Enter mission objective here]
+
+## Linked Repositories
+EOF
+    echo "✅ Project '$proj_name' created at $target_dir"
+
+    if command -v "$EDITOR" >/dev/null 2>&1; then
+        echo "📖 Opening AGENTS.md with $EDITOR..."
+        "$EDITOR" AGENTS.md
+    fi
+}
+
+px_add() {
+    if [ ! -f "AGENTS.md" ]; then
+        echo "❌ Error: Not in a px project folder (No AGENTS.md found)."
+        exit 1
+    fi
+
+    local repo_path=$1
+    if [ -z "$repo_path" ]; then echo "Usage: px add [path-to-repo]"; exit 1; fi
+
+    if [ ! -d "$repo_path/.git" ]; then
+        echo "❌ Error: '$repo_path' is not a valid Git repository."
+        exit 1
+    fi
+
+    local abs_path=$(cd "$repo_path" && pwd)
+    local folder_name=$(basename "$abs_path")
+
+    if [ -L "$folder_name" ]; then
+        echo "⚠️  Link for $folder_name already exists."
+    else
+        ln -s "$abs_path" "./$folder_name"
+        echo "- Linked: $folder_name" >> AGENTS.md
+        echo "🔗 Linked $folder_name -> $abs_path"
+    fi
+}
+
+px_list() {
+    echo "📂 Current Projects in $PX_ROOT:"
+    echo "------------------------------------------"
+    if [ ! -d "$PX_ROOT" ]; then echo "No projects found."; return; fi
+    for d in "$PX_ROOT"/*/; do
+        [ -e "$d" ] || continue
+        local name=$(basename "$d")
+        local link_count=$(find "$d" -maxdepth 1 -type l | wc -l | xargs)
+        printf "  %-20s [%s repos linked]\n" "$name" "$link_count"
+    done
+}
+
+px_remove() {
+    local folder_name=$1
+    if [ -z "$folder_name" ]; then echo "Usage: px remove [folder-name]"; exit 1; fi
+
+    if [ -L "$folder_name" ]; then
+        rm "$folder_name"
+        # Cross-platform sed cleanup
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "/- Linked: $folder_name/d" AGENTS.md
+        else
+            sed -i "/- Linked: $folder_name/d" AGENTS.md
+        fi
+        echo "🗑️  Removed link to $folder_name."
+    else
+        echo "❌ Error: $folder_name is not a symlink."
+    fi
+}
+
+px_install() {
+    mkdir -p "$BIN_DIR"
+    local script_src
+    script_src=$(realpath "$0")
+
+    ln -sf "$script_src" "$BIN_DIR/px"
+    chmod +x "$script_src"
+
+    echo "✅ Installed 'px' to $BIN_DIR/px"
+
+    # Check if BIN_DIR is in PATH
+    if [[ ":$PATH:" != *":$BIN_DIR:"* ]]; then
+        echo "⚠️  Warning: $BIN_DIR is not in your PATH."
+        echo "Add this to your .zshrc or .bashrc:"
+        echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+    else
+        echo "🚀 'px' is ready to use!"
+    fi
+}
+
+case "$1" in
+    init)    shift; px_init "$@" ;;
+    add)     shift; px_add "$@" ;;
+    list)    shift; px_list ;;
+    remove)  shift; px_remove "$@" ;;
+    install) px_install ;;
+    *)       px_usage ;;
+esac
