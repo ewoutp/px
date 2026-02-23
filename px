@@ -31,6 +31,9 @@ px_init() {
 ## Objective
 - [Enter mission objective here]
 
+## Please remember
+- Always look in the linked repositories for AGENTS.md files and read them when available.
+
 ## Linked Repositories
 EOF
     echo "✅ Project '$proj_name' created at $target_dir"
